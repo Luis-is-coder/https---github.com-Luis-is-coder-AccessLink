@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Itinerary Planner – AccessLink</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="/css/style.css?v=2">
+  <style>
+    @media (min-width: 992px) {
+      html, body { height: 100%; overflow: hidden; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link visually-hidden-focusable" href="#main">Skip to main content</a>
+
+  <nav class="navbar navbar-dark bg-primary" aria-label="Main navigation">
+    <div class="container-fluid px-3">
+      <a class="navbar-brand" href="/index.html">Access<span>Link</span></a>
+      <div id="nav-user-menu" class="d-none">
+        <span class="text-white small me-2" id="nav-user-name"></span>
+      </div>
+      <a href="/index.html" class="btn btn-sm btn-outline-light">Back to map</a>
+    </div>
+  </nav>
+
+  <!-- Pick mode overlay banner -->
+  <div id="pick-banner" class="pick-banner d-none" role="alert" aria-live="assertive">
+    Click on the map to set the <strong id="pick-banner-label">start</strong> point
+    <button type="button" id="pick-cancel" class="btn btn-sm btn-outline-light ms-3">Cancel</button>
+  </div>
+
+  <main id="main" aria-label="Itinerary planner">
+    <div class="row g-0 itinerary-layout">
+
+      <!-- Left panel: form + saved trips -->
+      <div class="col-lg-4 itinerary-panel">
+        <div class="itinerary-panel-inner">
+
+          <div class="mb-3">
+            <h1 class="h5 fw-bold mb-1">Accessible Route Planner</h1>
+            <p class="text-muted small mb-0">Find wheelchair and accessibility-friendly stops along your journey.</p>
+          </div>
+
+          <form id="itinerary-form" novalidate>
+
+            <!-- Trip name -->
+            <div class="mb-3">
+              <label for="title" class="form-label fw-semibold small">Trip name</label>
+              <input type="text" id="title" class="form-control form-control-sm"
+                     value="My Accessible Trip" required
+                     aria-required="true">
+            </div>
+
+            <!-- Start point -->
+            <fieldset class="mb-3">
+              <legend class="form-label fw-semibold small mb-1">Start point</legend>
+              <div class="position-relative mb-2">
+                <input type="text" id="start-search" class="form-control form-control-sm"
+                       placeholder="Search for a place..."
+                       autocomplete="off"
+                       aria-label="Search start location"
+                       aria-autocomplete="list"
+                       aria-controls="start-search-results"
+                       aria-expanded="false">
+                <div id="start-search-results" class="search-dropdown" role="listbox" aria-label="Start location suggestions"></div>
+              </div>
+              <input type="hidden" id="start_lat" value="1.290000">
+              <input type="hidden" id="start_lng" value="103.850000">
+              <div class="d-flex gap-2">
+                <button type="button" id="btn-use-location-start" class="btn btn-sm btn-outline-secondary flex-fill">My location</button>
+                <button type="button" id="btn-pick-start" class="btn btn-sm btn-outline-primary flex-fill">Pick on map</button>
+              </div>
+              <div id="start-place-name" class="place-name-label mt-1"></div>
+            </fieldset>
+
+            <!-- End point -->
+            <fieldset class="mb-3">
+              <legend class="form-label fw-semibold small mb-1">End point</legend>
+              <div class="position-relative mb-2">
+                <input type="text" id="end-search" class="form-control form-control-sm"
+                       placeholder="Search for a place..."
+                       autocomplete="off"
+                       aria-label="Search end location"
+                       aria-autocomplete="list"
+                       aria-controls="end-search-results"
+                       aria-expanded="false">
+                <div id="end-search-results" class="search-dropdown" role="listbox" aria-label="End location suggestions"></div>
+              </div>
+              <input type="hidden" id="end_lat" value="1.283400">
+              <input type="hidden" id="end_lng" value="103.860700">
+              <div class="d-flex gap-2">
+                <button type="button" id="btn-use-location-end" class="btn btn-sm btn-outline-secondary flex-fill">My location</button>
+                <button type="button" id="btn-pick-end" class="btn btn-sm btn-outline-primary flex-fill">Pick on map</button>
+              </div>
+              <div id="end-place-name" class="place-name-label mt-1"></div>
+            </fieldset>
+
+            <!-- Notes -->
+            <div class="mb-3">
+              <label for="notes" class="form-label fw-semibold small">
+                Notes <span class="text-muted fw-normal">(optional)</span>
+              </label>
+              <textarea id="notes" class="form-control form-control-sm" rows="2"
+                        placeholder="Special requirements, e.g. need elevator access..."></textarea>
+            </div>
+
+            <!-- Submit button -->
+            <button type="submit" id="btn-plan" class="btn btn-primary btn-sm w-100">
+              <span id="btn-plan-text">Plan accessible route</span>
+              <span id="btn-plan-spinner" class="spinner-border spinner-border-sm ms-2 d-none"
+                    role="status" aria-hidden="true"></span>
+            </button>
+          </form>
+
+          <!-- Route options (shown after planning) -->
+          <div id="route-options" class="d-none mt-3" aria-live="polite">
+
+            <!-- Mode tabs -->
+            <div class="mode-tabs" role="tablist" aria-label="Transport modes">
+              <button type="button" class="mode-tab" id="tab-walk"       data-mode="walk"       role="tab" aria-selected="false">Walk</button>
+              <button type="button" class="mode-tab" id="tab-drive"      data-mode="drive"      role="tab" aria-selected="false">Drive/Taxi</button>
+              <button type="button" class="mode-tab" id="tab-transit"    data-mode="transit"    role="tab" aria-selected="false">Bus/MRT</button>
+              <button type="button" class="mode-tab" id="tab-wheelchair" data-mode="wheelchair" role="tab" aria-selected="false">Wheelchair</button>
+            </div>
+
+            <!-- Per-mode summary -->
+            <div id="mode-summary" class="mode-summary-card mt-2"></div>
+
+            <!-- Step-by-step directions -->
+            <div id="directions-panel" class="directions-panel mt-2"></div>
+
+            <!-- Google Maps transit link (always available) -->
+            <a id="gmaps-transit-link" href="#" target="_blank" rel="noopener"
+               class="btn btn-sm btn-outline-secondary w-100 mt-2 d-none">
+              Open transit directions in Google Maps
+            </a>
+          </div>
+
+          <!-- Route summary stats (shown alongside route options) -->
+          <div id="route-summary" class="route-summary-card d-none mt-2" aria-live="polite">
+            <div class="d-flex text-center">
+              <div class="summary-stat">
+                <div class="summary-value" id="summary-distance">—</div>
+                <div class="summary-label">Distance</div>
+              </div>
+              <div class="summary-stat">
+                <div class="summary-value" id="summary-time">—</div>
+                <div class="summary-label">Time</div>
+              </div>
+              <div class="summary-stat">
+                <div class="summary-value" id="summary-stops">—</div>
+                <div class="summary-label">Stops</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved trips -->
+          <div class="mt-3">
+            <h2 class="saved-trips-heading">Saved trips</h2>
+            <div id="saved-itineraries">
+              <p class="text-muted small mb-0">No saved trips yet.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right panel: map + stops carousel -->
+      <div class="col-lg-8 itinerary-main">
+        <div id="itinerary-map" class="itinerary-map-full"
+             style="height:calc(100vh - 241px);min-height:350px;width:100%;display:block;"
+             aria-label="Trip planning map" role="application"></div>
+
+        <div class="stops-panel">
+          <h2 class="stops-panel-heading">Accessible stops along route</h2>
+          <div id="suggested-stops" class="stops-list">
+            <p class="text-muted small mb-0 py-1">Plan a trip to see accessible stops.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/itinerary.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Venue Dashboard – AccessLink</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/index.html">Access<span>Link</span></a>
+      <a href="/index.html" class="btn btn-sm btn-outline-light">Back to map</a>
+    </div>
+  </nav>
+
+  <main class="page-content container">
+    <h1 class="h3 mb-4">Venue accessibility dashboard</h1>
+    <p class="text-muted">Claim your business, update accessibility features, and review community reports.</p>
+
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card text-center card-hover">
+          <div class="card-body">
+            <div class="display-6" id="stat-locations">–</div>
+            <div class="text-muted">My locations</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-center card-hover">
+          <div class="card-body">
+            <div class="display-6" id="stat-reports">–</div>
+            <div class="text-muted">Total reports</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card text-center card-hover">
+          <div class="card-body">
+            <div class="display-6 text-warning" id="stat-pending">–</div>
+            <div class="text-muted">Pending review</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <h2 class="h5">My claimed locations</h2>
+        <div id="my-locations"></div>
+      </div>
+      <div class="col-lg-6">
+        <h2 class="h5">Claim a location</h2>
+        <div class="card shadow-sm">
+          <div class="card-body" id="unclaimed-list"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Edit Location Modal -->
+  <div class="modal fade" id="editLocationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="edit-loc-form" class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title h5">Update accessibility</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="edit-loc-id">
+          <div class="mb-3">
+            <label for="edit-name" class="form-label">Name</label>
+            <input type="text" id="edit-name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label for="edit-description" class="form-label">Description</label>
+            <textarea id="edit-description" class="form-control" rows="3"></textarea>
+          </div>
+          <fieldset>
+            <legend class="form-label fs-6">Features</legend>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="edit-wheelchair"><label class="form-check-label" for="edit-wheelchair">Wheelchair accessible</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="edit-elevator"><label class="form-check-label" for="edit-elevator">Elevator</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="edit-braille"><label class="form-check-label" for="edit-braille">Braille signage</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="edit-quiet"><label class="form-check-label" for="edit-quiet">Quiet room</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="edit-signlang"><label class="form-check-label" for="edit-signlang">Sign language support</label></div>
+            <div class="form-check"><input class="form-check-input" type="checkbox" id="edit-restroom"><label class="form-check-label" for="edit-restroom">Accessible restroom</label></div>
+          </fieldset>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

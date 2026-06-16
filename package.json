@@ -1,0 +1,31 @@
+{
+  "name": "accesslink",
+  "version": "1.0.0",
+  "description": "Crowdsourced accessibility map and itinerary planner",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "db:setup": "node database/setup.js",
+    "db:import": "node database/import-singapore.js"
+  },
+  "keywords": [
+    "accessibility",
+    "hackathon",
+    "leaflet",
+    "express"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^9.0.0",
+    "nodemon": "^3.1.14",
+    "pg": "^8.13.0",
+    "twilio": "^5.3.2"
+  }
+}

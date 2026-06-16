@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report Accessibility – AccessLink</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/index.html">Access<span>Link</span></a>
+      <a href="/index.html" class="btn btn-sm btn-outline-light">Back to map</a>
+    </div>
+  </nav>
+
+  <main class="page-content container" style="max-width:640px">
+    <h1 class="h3 mb-2">Crowdsource a report</h1>
+    <p id="report-location-name" class="text-muted mb-4">Help others by sharing accessibility info at a location.</p>
+
+    <form id="report-form" class="card shadow-sm" enctype="multipart/form-data">
+      <div class="card-body p-4">
+        <input type="hidden" id="location_id" name="location_id">
+
+        <div class="mb-3">
+          <label for="place_name" class="form-label">Place name (if new location)</label>
+          <input type="text" id="place_name" name="place_name" class="form-control" placeholder="Only if not selecting from map">
+        </div>
+        <div class="row mb-3">
+          <div class="col-6">
+            <label for="lat" class="form-label">Latitude</label>
+            <input type="number" step="any" id="lat" name="lat" class="form-control" placeholder="From map click">
+          </div>
+          <div class="col-6">
+            <label for="lng" class="form-label">Longitude</label>
+            <input type="number" step="any" id="lng" name="lng" class="form-control">
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="address" class="form-label">Address (optional)</label>
+          <input type="text" id="address" name="address" class="form-control">
+        </div>
+        <div class="mb-3">
+          <label for="description" class="form-label">What's the accessibility situation?</label>
+          <textarea id="description" name="description" class="form-control" rows="4" required placeholder="Ramp on north side. Elevator broken on level 2…"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="photo" class="form-label">Photo (optional)</label>
+          <input type="file" id="photo" name="photo" class="form-control" accept="image/*">
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Submit report</button>
+      </div>
+    </form>
+  </main>
+
+  <div id="toast-container"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/report.js"></script>
+</body>
+</html>

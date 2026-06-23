@@ -40,6 +40,25 @@ async function initItineraryPage() {
   document.getElementById('btn-pick-end').addEventListener('click', () => activatePickMode('end'));
   document.getElementById('pick-cancel').addEventListener('click', cancelPickMode);
 
+  // Mode tab clicks — set up ONCE via delegation so repeated planTrip() calls don't stack listeners
+  document.querySelector('.mode-tabs').addEventListener('click', (e) => {
+    const tab = e.target.closest('.mode-tab');
+    if (!tab || tab.disabled || tab.classList.contains('d-none')) return;
+    const mode = tab.dataset.mode;
+    if (!routingData?.routes?.[mode]) return;
+    document.querySelectorAll('.mode-tab').forEach((t) => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+      t.textContent = t.dataset.label;
+    });
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+    renderRouteMode(routingData, mode);
+    renderModeSummary(routingData.routes[mode]);
+    renderDirections(routingData.routes[mode]);
+    renderRouteSummary(mode);
+  });
+
   initSearch('start');
   initSearch('end');
   loadSavedItineraries();
@@ -386,34 +405,23 @@ function renderRouteOptions(data) {
 
   panel.classList.remove('d-none');
 
-  // Wire tab clicks
-  document.querySelectorAll('.mode-tab:not(.d-none)').forEach((tab) => {
-    tab.addEventListener('click', () => {
-      const mode = tab.dataset.mode;
-      if (!routingData?.routes?.[mode]) return;
-      document.querySelectorAll('.mode-tab').forEach((t) => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-      renderRouteMode(routingData, mode);
-      renderModeSummary(routingData.routes[mode]);
-      renderDirections(routingData.routes[mode]);
-      renderRouteSummary(mode);
-    });
+  // Reset all tab labels and active state (so re-planning doesn't stack ★)
+  document.querySelectorAll('.mode-tab').forEach((t) => {
+    t.classList.remove('active');
+    t.setAttribute('aria-selected', 'false');
+    t.textContent = t.dataset.label;
   });
 
-  // Activate recommended tab
+  // Mark and activate the recommended tab
   const recTab = document.getElementById(`tab-${data.recommended}`);
   if (recTab && !recTab.classList.contains('d-none')) {
     recTab.classList.add('active');
     recTab.setAttribute('aria-selected', 'true');
-    recTab.textContent += ' ★';
+    recTab.textContent = `${recTab.dataset.label} ★`;
   }
 
-  renderModeSummary(routes[data.recommended] || Object.values(routes)[0]);
-  renderDirections(routes[data.recommended] || Object.values(routes)[0]);
+  renderModeSummary(routes[data.recommended] || Object.values(routes).find((r) => r?.distance_m));
+  renderDirections(routes[data.recommended] || Object.values(routes).find((r) => r?.steps?.length));
 }
 
 function renderModeSummary(route) {
@@ -523,14 +531,14 @@ function renderStops(dbStops, extraStops) {
 
   el.innerHTML = `<div class="stops-scroll">
     ${sorted.map((s, i) => {
-      const score   = s.accessibility_score ?? s.score ?? 0;
-      const pct     = Math.min(100, Math.round((score / 10) * 100));
-      const color   = pct >= 70 ? '#059669' : pct >= 40 ? '#d97706' : '#dc2626';
       const tags    = accessibilityTags(s);
+      const feat    = tags.length;                      // 0–6 actual features
+      const pct     = Math.round((feat / 6) * 100);
+      const color   = pct >= 67 ? '#059669' : pct >= 34 ? '#d97706' : '#dc2626';
       const visible = tags.slice(0, 3);
       const extra   = tags.length - 3;
       return `<div class="stop-card" data-stop-index="${i}" role="button" tabindex="0"
-                   aria-label="Stop ${i+1}: ${esc(s.name)}, score ${score} out of 10">
+                   aria-label="Stop ${i+1}: ${esc(s.name)}, ${feat} of 6 accessibility features">
                 <div class="stop-number">${i+1}</div>
                 <div class="stop-content">
                   <div class="stop-name" title="${esc(s.name)}">${esc(s.name)}</div>
@@ -538,8 +546,8 @@ function renderStops(dbStops, extraStops) {
                     <div class="score-bar-fill" style="width:${pct}%;background:${color}"></div>
                   </div>
                   <div class="d-flex justify-content-between">
-                    <small class="text-muted">${s.distance_km != null ? s.distance_km.toFixed(1)+' km' : ''}</small>
-                    <small style="color:${color};font-weight:600">${score}/10</small>
+                    <small class="text-muted">${s.distance_km != null ? s.distance_km.toFixed(1)+' km' : (s.category || '')}</small>
+                    <small style="color:${color};font-weight:600">${feat}/6</small>
                   </div>
                   ${visible.length ? `<div class="tags-row mt-1">
                     ${visible.map((t) => `<span class="badge bg-success me-1" title="${t.label}">${t.icon}</span>`).join('')}
@@ -691,12 +699,14 @@ function createNumberedIcon(num) {
 }
 
 function buildStopPopup(stop, num) {
-  const tags = accessibilityTags(stop).map((t) => `${t.icon} ${t.label}`).join('<br>');
-  const score = stop.accessibility_score ?? stop.score ?? 0;
-  return `<div style="min-width:160px"><strong>#${num} ${esc(stop.name)}</strong><br>
-          <small>Score: ${score}/10</small>
+  const tags = accessibilityTags(stop);
+  const feat = tags.length;
+  const tagsHtml = tags.map((t) => `${t.icon} ${t.label}`).join('<br>');
+  const cat  = stop.category ? `<br><small class="text-muted">${stop.category}</small>` : '';
+  return `<div style="min-width:160px"><strong>#${num} ${esc(stop.name)}</strong>${cat}
+          <br><small>${feat}/6 accessibility features</small>
           ${stop.distance_km ? `<br><small>${stop.distance_km.toFixed(1)} km from route</small>` : ''}
-          ${tags ? `<div style="margin-top:4px;font-size:12px">${tags}</div>` : ''}</div>`;
+          ${tagsHtml ? `<div style="margin-top:4px;font-size:12px">${tagsHtml}</div>` : ''}</div>`;
 }
 
 // ─── Geospatial Helpers ───────────────────────────────────────────────────────

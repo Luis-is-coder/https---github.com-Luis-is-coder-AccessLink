@@ -49,8 +49,7 @@ body.large-text {
 }
 
 #map {
-  position: absolute;
-  inset: 0;
+  height: calc(100vh - 56px);
   z-index: 1;
 }
 
@@ -63,8 +62,6 @@ body.large-text {
   position: relative;
   flex: 1;
   min-width: 0;
-  height: calc(100vh - 56px);
-  overflow: hidden;
 }
 
 .map-sidebar {
@@ -169,7 +166,7 @@ body.large-text {
     border-right: none;
     border-bottom: 1px solid var(--al-border);
   }
-  .map-area {
+  #map {
     height: 50vh;
   }
   .location-panel {

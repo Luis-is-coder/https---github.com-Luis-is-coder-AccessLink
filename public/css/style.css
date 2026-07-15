@@ -154,6 +154,7 @@ body.large-text {
 
 .filter-chip {
   cursor: pointer;
+  -webkit-user-select: none;
   user-select: none;
 }
 
@@ -262,8 +263,8 @@ footer {
 
 /* Leaflet needs a hard pixel/calc height to render tiles */
 #itinerary-map.itinerary-map-full {
-  height: calc(100vh - 56px - 185px);
-  min-height: 320px;
+  height: calc(100vh - 241px);
+  min-height: 350px;
   width: 100%;
   display: block;
 }
@@ -298,8 +299,8 @@ footer {
   overflow-y: hidden;
   height: 100%;
   padding-bottom: 4px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--al-border) transparent;
+  scrollbar-width: thin;          /* Firefox */
+  scrollbar-color: var(--al-border) transparent; /* Firefox */
 }
 
 .stops-scroll::-webkit-scrollbar { height: 4px; }
@@ -547,8 +548,11 @@ body.high-contrast .route-summary-card {
 .directions-panel {
   max-height: 260px;
   overflow-y: auto;
-  scrollbar-width: thin;
+  scrollbar-width: thin; /* Firefox */
 }
+
+.directions-panel::-webkit-scrollbar { width: 4px; }
+.directions-panel::-webkit-scrollbar-thumb { background: var(--al-border); border-radius: 2px; }
 
 .directions-panel::-webkit-scrollbar { width: 4px; }
 .directions-panel::-webkit-scrollbar-thumb { background: var(--al-border); border-radius: 2px; }

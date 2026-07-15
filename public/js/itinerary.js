@@ -16,9 +16,12 @@ const NOMINATIM = 'https://nominatim.openstreetmap.org';
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 async function initItineraryPage() {
-  if (!API.getToken()) {
-    window.location.href = '/login.html?redirect=/itinerary.html';
-    return;
+  const loggedIn = !!API.getToken();
+
+  // Hide saved trips section for guests
+  if (!loggedIn) {
+    const savedSection = document.querySelector('.mt-3:has(#saved-itineraries)');
+    if (savedSection) savedSection.style.display = 'none';
   }
 
   itineraryMap = L.map('itinerary-map').setView([1.29, 103.85], 13);
@@ -256,32 +259,45 @@ async function planTrip(e) {
   btnText.textContent = 'Planning...';
 
   try {
-    // 1. Save trip + get accessible stops from our DB
-    const tripResult = await API.post('/itinerary/plan', {
-      title:     document.getElementById('title').value.trim() || 'My Accessible Trip',
-      start_lat: startLat, start_lng: startLng,
-      end_lat:   endLat,   end_lng:   endLng,
-      notes:     document.getElementById('notes').value,
-    });
-    currentResult = tripResult;
-
-    // 2. Get real routes from OSRM + Overpass (parallel with trip save)
+    // 1. Get real routes from OSRM + Overpass (always, even for guests)
     const routingRes = await API.get(
       `/routing/plan?start_lat=${startLat}&start_lng=${startLng}&end_lat=${endLat}&end_lng=${endLng}`
     );
     routingData = routingRes;
 
-    // 3. Render everything
+    // 2. Save trip + get personalised stops (logged-in users only)
+    if (API.getToken()) {
+      try {
+        const tripResult = await API.post('/itinerary/plan', {
+          title:     document.getElementById('title').value.trim() || 'My Accessible Trip',
+          start_lat: startLat, start_lng: startLng,
+          end_lat:   endLat,   end_lng:   endLng,
+          notes:     document.getElementById('notes').value,
+        });
+        currentResult = tripResult;
+        renderStops(tripResult.suggested_stops, routingData.db_stops);
+        showToast(
+          `Route ready — ${tripResult.suggested_stops.length} accessible stop${tripResult.suggested_stops.length !== 1 ? 's' : ''} found`,
+          'success'
+        );
+        loadSavedItineraries();
+      } catch {
+        // saving failed — still show route with routing stops
+        currentResult = { route: { start: { lat: startLat, lng: startLng }, end: { lat: endLat, lng: endLng } }, suggested_stops: [] };
+        renderStops([], routingData.db_stops);
+        showToast('Route ready (trip could not be saved)', 'warning');
+      }
+    } else {
+      // Guest: use route start/end for rendering, show DB stops from routing
+      currentResult = { route: { start: { lat: startLat, lng: startLng }, end: { lat: endLat, lng: endLng } }, suggested_stops: [] };
+      renderStops([], routingData.db_stops);
+      showToast('Route ready — <a href="/login.html?redirect=/itinerary.html" class="text-white fw-bold">Log in</a> to save this trip', 'info');
+    }
+
+    // 3. Render route on map
     renderRouteMode(routingData, routingData.recommended);
     renderRouteOptions(routingData);
-    renderStops(tripResult.suggested_stops, routingData.db_stops);
     renderRouteSummary(routingData.recommended);
-
-    showToast(
-      `Route ready — ${tripResult.suggested_stops.length} accessible stop${tripResult.suggested_stops.length !== 1 ? 's' : ''} found`,
-      'success'
-    );
-    loadSavedItineraries();
   } catch (err) {
     showToast(err.message || 'Failed to plan trip. Please try again.', 'error');
   } finally {

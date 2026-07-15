@@ -29,7 +29,7 @@ async function safeFetch(url, options = {}) {
 // ─── GET /api/routing/plan ────────────────────────────────────────────────────
 // Returns real walking + driving routes (OSRM), optionally wheelchair (ORS) and
 // transit (OneMap Singapore), plus accessible OSM nodes from Overpass.
-router.get('/plan', authRequired, async (req, res) => {
+router.get('/plan', async (req, res) => {
   const { start_lat, start_lng, end_lat, end_lng } = req.query;
   if (!start_lat || !start_lng || !end_lat || !end_lng) {
     return res.status(400).json({ error: 'start_lat, start_lng, end_lat, end_lng are required' });

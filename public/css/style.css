@@ -49,19 +49,16 @@ body.large-text {
 }
 
 #map {
+  flex: 1;
   height: calc(100vh - 56px);
+  min-height: 400px;
   z-index: 1;
 }
 
 .map-layout {
   display: flex;
-  height: calc(100vh - 56px);
-}
-
-.map-area {
   position: relative;
-  flex: 1;
-  min-width: 0;
+  height: calc(100vh - 56px);
 }
 
 .map-sidebar {

@@ -95,4 +95,6 @@ async function loadProfile() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadProfile);
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('profile-form')) loadProfile();
+});

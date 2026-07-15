@@ -98,7 +98,7 @@ body.large-text {
   pointer-events: none;
 }
 
-.location-panel:not([hidden]) {
+.location-panel.is-open {
   transform: translateX(0);
   opacity: 1;
   pointer-events: auto;

@@ -79,7 +79,10 @@ function renderMarkers() {
     });
 
     marker.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.address || loc.category || ''}</small>`);
-    marker.on('click', () => selectLocation(loc.id));
+    marker.on('click', (e) => {
+      L.DomEvent.stopPropagation(e); // prevent map click from firing and closing the panel
+      selectLocation(loc.id);
+    });
     marker.addTo(markersLayer);
     markersById[loc.id] = marker;
   });
@@ -160,12 +163,12 @@ function showLocationPanel(loc) {
   const ttsText = `${loc.name}. ${loc.description || ''}. ${accessibilityTags(loc).map((t) => t.label).join(', ')}`;
   document.getElementById('lp-tts-text').textContent = ttsText;
 
-  panel.hidden = false;
+  panel.classList.add('is-open');
 }
 
 function closeLocationPanel() {
   const panel = document.getElementById('location-panel');
-  if (panel) panel.hidden = true;
+  if (panel) panel.classList.remove('is-open');
 }
 
 function bindFilters() {

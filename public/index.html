@@ -72,17 +72,33 @@
 
         <button id="btn-refresh" class="btn btn-sm btn-outline-primary w-100 mb-3">Refresh map</button>
 
-        <div id="location-detail" class="mb-3 p-3 bg-light rounded" aria-live="polite">
-          <p class="text-muted mb-0">Select a marker or list item to see details.</p>
-        </div>
-
         <div id="location-list" aria-label="Location list"></div>
       </aside>
-      <div id="map" role="application" aria-label="Interactive accessibility map"></div>
+      <div class="map-area">
+        <div id="map" role="application" aria-label="Interactive accessibility map"></div>
+
+        <!-- Floating location detail panel (overlaid on map) -->
+        <div id="location-panel" class="location-panel" aria-live="polite" aria-label="Location details" hidden>
+          <div class="location-panel-header">
+            <span id="lp-category" class="location-panel-category"></span>
+            <button type="button" id="lp-close" class="location-panel-close" aria-label="Close details">✕</button>
+          </div>
+          <h3 id="lp-name" class="location-panel-name"></h3>
+          <p id="lp-address" class="location-panel-address"></p>
+          <p id="lp-description" class="location-panel-desc"></p>
+          <div id="lp-tags" class="mb-3"></div>
+          <div class="location-panel-actions">
+            <a id="lp-report" href="#" class="btn btn-sm btn-outline-primary">Report update</a>
+            <a id="lp-directions" href="#" class="btn btn-sm btn-outline-success">Get directions</a>
+            <button id="lp-tts" type="button" class="btn btn-sm btn-outline-secondary">Read aloud</button>
+          </div>
+          <div id="lp-tts-text" class="visually-hidden"></div>
+        </div>
+      </div>
     </div>
   </main>
 
-  <button id="fab-emergency" class="btn btn-danger emergency-btn" aria-label="I'm stuck – get help">
+  <button id="fab-emergency" type="button" class="btn btn-danger emergency-btn" aria-label="I'm stuck – get help">
     🆘 I'm Stuck
   </button>
 

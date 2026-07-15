@@ -49,7 +49,8 @@ body.large-text {
 }
 
 #map {
-  height: calc(100vh - 56px);
+  width: 100%;
+  height: 100%;
   min-height: 400px;
   z-index: 1;
 }
@@ -57,6 +58,12 @@ body.large-text {
 .map-layout {
   display: flex;
   height: calc(100vh - 56px);
+}
+
+.map-area {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
 }
 
 .map-sidebar {
@@ -72,6 +79,84 @@ body.large-text {
   display: none;
 }
 
+/* ── Floating location detail panel ──────────────────────────────── */
+.location-panel {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 310px;
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
+  background: var(--al-card);
+  border-radius: 1rem;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  padding: 1rem 1.125rem 1.125rem;
+  z-index: 800;
+  transform: translateX(calc(100% + 1.5rem));
+  transition: transform 0.25s cubic-bezier(.4,0,.2,1), opacity 0.2s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.location-panel:not([hidden]) {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.location-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+
+.location-panel-category {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--al-primary);
+}
+
+.location-panel-close {
+  background: none;
+  border: none;
+  color: var(--al-text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+.location-panel-close:hover { color: var(--al-text); }
+
+.location-panel-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 0.2rem;
+  line-height: 1.3;
+}
+
+.location-panel-address {
+  font-size: 0.82rem;
+  color: var(--al-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.location-panel-desc {
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.location-panel-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.location-panel-actions .btn { font-size: 0.78rem; }
+
 @media (max-width: 768px) {
   .map-layout {
     flex-direction: column;
@@ -85,6 +170,14 @@ body.large-text {
   }
   #map {
     height: 50vh;
+  }
+  .location-panel {
+    top: auto;
+    bottom: 1rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    width: auto;
+    max-height: 55vh;
   }
 }
 

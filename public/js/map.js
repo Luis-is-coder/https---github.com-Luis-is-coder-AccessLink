@@ -2,6 +2,7 @@ let map;
 let markersLayer;
 let locations = [];
 let selectedId = null;
+const markersById = {};
 
 const DEFAULT_CENTER = [1.2900, 103.8500];
 const DEFAULT_ZOOM = 13;
@@ -66,6 +67,8 @@ function markerColor(loc) {
 
 function renderMarkers() {
   markersLayer.clearLayers();
+  Object.keys(markersById).forEach((k) => delete markersById[k]);
+
   locations.forEach((loc) => {
     const marker = L.circleMarker([parseFloat(loc.lat), parseFloat(loc.lng)], {
       radius: 10,
@@ -75,9 +78,10 @@ function renderMarkers() {
       fillOpacity: 0.9,
     });
 
-    marker.bindPopup(buildPopupContent(loc));
+    marker.bindPopup(`<strong>${loc.name}</strong><br><small>${loc.address || loc.category || ''}</small>`);
     marker.on('click', () => selectLocation(loc.id));
     marker.addTo(markersLayer);
+    markersById[loc.id] = marker;
   });
 }
 
@@ -132,20 +136,36 @@ function selectLocation(id) {
   renderSidebar();
   map.setView([parseFloat(loc.lat), parseFloat(loc.lng)], 16);
 
-  const detail = document.getElementById('location-detail');
-  if (detail) {
-    detail.innerHTML = `
-      <h5>${loc.name}</h5>
-      <p class="text-muted mb-2">${loc.address || ''}</p>
-      <p>${loc.description || 'No description yet.'}</p>
-      <div class="mb-3">${renderTagsHtml(loc)}</div>
-      <div class="d-flex gap-2 flex-wrap">
-        <a href="/report.html?location_id=${loc.id}" class="btn btn-sm btn-outline-primary">Report update</a>
-        <button class="btn btn-sm btn-outline-secondary" onclick="A11y.speak(document.getElementById('location-detail-text').textContent)">Read aloud</button>
-      </div>
-      <div id="location-detail-text" class="visually-hidden">${loc.name}. ${loc.description || ''}. ${accessibilityTags(loc).map((t) => t.label).join(', ')}</div>
-    `;
-  }
+  // Open the marker popup on the map
+  const marker = markersById[id];
+  if (marker) marker.openPopup();
+
+  // Populate and show the floating panel
+  showLocationPanel(loc);
+}
+
+function showLocationPanel(loc) {
+  const panel = document.getElementById('location-panel');
+  if (!panel) return;
+
+  document.getElementById('lp-category').textContent = loc.category || '';
+  document.getElementById('lp-name').textContent = loc.name;
+  document.getElementById('lp-address').textContent = loc.address || '';
+  document.getElementById('lp-description').textContent = loc.description || 'No description yet.';
+  document.getElementById('lp-tags').innerHTML = renderTagsHtml(loc);
+
+  document.getElementById('lp-report').href = `/report.html?location_id=${loc.id}`;
+  document.getElementById('lp-directions').href = `/itinerary.html?end_lat=${loc.lat}&end_lng=${loc.lng}&end_name=${encodeURIComponent(loc.name)}`;
+
+  const ttsText = `${loc.name}. ${loc.description || ''}. ${accessibilityTags(loc).map((t) => t.label).join(', ')}`;
+  document.getElementById('lp-tts-text').textContent = ttsText;
+
+  panel.hidden = false;
+}
+
+function closeLocationPanel() {
+  const panel = document.getElementById('location-panel');
+  if (panel) panel.hidden = true;
 }
 
 function bindFilters() {
@@ -166,6 +186,16 @@ function bindFilters() {
   document.getElementById('toggle-sidebar')?.addEventListener('click', () => {
     document.querySelector('.map-sidebar')?.classList.toggle('collapsed');
   });
+
+  document.getElementById('lp-close')?.addEventListener('click', closeLocationPanel);
+
+  document.getElementById('lp-tts')?.addEventListener('click', () => {
+    const text = document.getElementById('lp-tts-text')?.textContent;
+    if (text && typeof A11y !== 'undefined') A11y.speak(text);
+  });
+
+  // Close panel when clicking the map background
+  map.on('click', () => closeLocationPanel());
 }
 
 function debounce(fn, ms) {

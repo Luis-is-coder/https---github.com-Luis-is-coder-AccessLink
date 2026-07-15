@@ -65,6 +65,21 @@ async function initItineraryPage() {
   initSearch('start');
   initSearch('end');
   loadSavedItineraries();
+
+  // Pre-fill end point from query params (e.g. coming from map "Get directions")
+  const qp = new URLSearchParams(window.location.search);
+  const qEndLat  = qp.get('end_lat');
+  const qEndLng  = qp.get('end_lng');
+  const qEndName = qp.get('end_name');
+  if (qEndLat && qEndLng) {
+    document.getElementById('end_lat').value = qEndLat;
+    document.getElementById('end_lng').value = qEndLng;
+    if (qEndName) {
+      document.getElementById('end-search').value = decodeURIComponent(qEndName);
+      document.getElementById('end-place-name').textContent = decodeURIComponent(qEndName);
+    }
+    itineraryMap.setView([parseFloat(qEndLat), parseFloat(qEndLng)], 15);
+  }
 }
 
 // ─── Address Search (Nominatim) ───────────────────────────────────────────────

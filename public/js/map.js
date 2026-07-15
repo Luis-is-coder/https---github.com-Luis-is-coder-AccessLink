@@ -38,6 +38,7 @@ async function initMap() {
     );
   }
 
+  requestAnimationFrame(() => map.invalidateSize());
   await loadLocations();
   bindFilters();
 }
